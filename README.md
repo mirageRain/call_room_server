@@ -166,27 +166,26 @@ sudo vim /home/call_room_server/kurento-room-server/src/main/resources/app.prope
     redis_pool_maxIdle=100
     redis_pool_maxActive=200
     redis_pool_maxWaitMillis=5000
-    redis_sentinel_host1=xxxx.xxxx.xxxx:xxxx
-    redis_sentinel_host2=xxxx.xxxx.xxxx:xxxx
+    redis_test_on_borrow=true
+    redis_test_on_return=true
+    redis_sentinel_host=127.0.0.1
+    redis_sentinel_post=6379
     redis_sentinel_master=xxxx
     redis_sentinel_pass=xxxx
-    redis_sentinel_table=1
+    redis_sentinel_table=2
 -----------------------------------------------------------------------------
 
 3.配置https
 项目中默认配置的是kurento提供的自签证书，实际生产项目中换成自己的CA证书，或者使用Java的Keytool来自己生成证书
 
-sudo keytool -genkey -alias startalk -keyalg RSA -keystore /home/call_room_server/kurento-room-pc/package/files/startalk.keystore
+sudo keytool -genkey -alias startalk -keyalg RSA -keystore /home/call_room_server/kurento-room-pc/src/main/resources/startalk.keystore
 按照提示填写密码、城市的等信息，然后修改spring boot的配置
-sudo vim /home/call_room_server/kurento-room-pc/package/files/application.properties
+sudo vim /home/call_room_server/kurento-room-pc/src/main/resources/application.properties
 
 4.编译打包项目
 cd /home/call_room_server
 sudo mvn clean package -am -pl kurento-room-pc -DskipTests
-cd kurento-room-pc/target
-sudo unzip -o kurento-room-pc-6.6.0.zip
-sudo chmod 755 kurento-room-pc-6.6.0/bin/*
 
 5.启动项目
-sudo /home/kurento-room/kurento-room-pc/target/kurento-room-pc-6.6.0/bin/start.sh
+将打包完的war包放到tomcat里面运行
 ```

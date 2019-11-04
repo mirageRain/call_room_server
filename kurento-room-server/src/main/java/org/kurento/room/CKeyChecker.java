@@ -1,22 +1,23 @@
 package org.kurento.room;
 
 import com.google.common.base.Splitter;
-import org.kurento.room.util.ShardedJedisSentinelPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.DigestUtils;
 
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 public class CKeyChecker {
 
     @Autowired
-    ShardedJedisSentinelPool pool;
+    StringRedisTemplate jedis;
 
     private static final Logger LOG = LoggerFactory.getLogger(CKeyChecker.class);
     private static final String DEFAULT_HOST = "";
@@ -42,20 +43,13 @@ public class CKeyChecker {
         if (!args.containsKey(D) || !args.containsKey(U) || !args.containsKey(T) || !args.containsKey(K)) {
             return null;
         }
-        ShardedJedisSentinelPool.MyShardedJedis jedis = null;
-        try {
-            jedis = pool.getResource();
-            Set<String> tokenRedis = jedis.hkeys(args.get(U) + JOINER_USER_HOST + args.get(D));
-            if (checkUserAuth(args.get(U), args.get(T), args.get(K), tokenRedis)) {
-                return args.get(U)+JOINER_USER_HOST+args.get(D);
-            }
-            return null;
-        } finally {
-            if (jedis != null) {
-                pool.returnResource(jedis);
-            }
-        }
 
+
+        Set<String> tokenRedis = jedis.opsForHash().keys(args.get(U) + JOINER_USER_HOST + args.get(D)).stream().map(Object::toString).collect(Collectors.toSet());
+        if (checkUserAuth(args.get(U), args.get(T), args.get(K), tokenRedis)) {
+            return args.get(U) + JOINER_USER_HOST + args.get(D);
+        }
+        return null;
     }
 
     private Map<String, String> getUserCkeyArgs(String Ckey) {
